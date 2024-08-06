@@ -1,4 +1,5 @@
 # Plot Types
+
 ## Line Plot
 - Line plots are used to track changes over short and long periods of time. When smaller changes exist, line plots are better to use than bar graphs. Line plots can also be used to compare changes over the same period of time for more than one group.
 - Line plots are often used to represent time series data. In a time series, time is often the independent variable and the goal is usually to detect trends over time.
@@ -28,6 +29,12 @@
 - Box plots are used to show the distribution of a single variable. They are useful for comparing the distribution of data across different categories.
 - Box plots are also used to identify outliers in the data.
 - Box plots are also used to compare the distribution of data across different categories.
+
+## Pie Chart
+- Pie charts are used to show the proportion of different categories. Each slice of a pie chart represents a different category.
+- Pie charts are useful when you want to see how your data is distributed across different categories.
+- Pie charts are also used to compare the distribution of data across different categories.
+
 
 ## Kernel Density Plot
 - Kernel density plots are used to show the distribution of a single variable. They are similar to histograms, but they show the probability density of the data at different values.
