@@ -7,7 +7,7 @@ __pycache__/
 *.so
 .env
 *.csv
-*.txt
+
 *.xlsx
 *.parquet
 # Distribution / packaging
