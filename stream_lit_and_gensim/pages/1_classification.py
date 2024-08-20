@@ -9,7 +9,6 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn import preprocessing
 from sklearn.svm import SVC
 
-!pip install -U scikit-learn
 
 current_dir = os.path.dirname(__file__)
 current_dir = os.path.dirname(current_dir)
