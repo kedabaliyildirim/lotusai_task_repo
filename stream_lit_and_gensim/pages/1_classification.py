@@ -13,11 +13,11 @@ from sklearn.svm import SVC
 current_dir = os.path.dirname(__file__)
 current_dir = os.path.dirname(current_dir)
 st.title('Star Classification')
-st.write('This is a simple star classification app that uses the Star dataset from Kaggle. \n \
-         The dataset contains information about stars and their properties. \n \
-         The goal is to predict the color of the star based on the other features. \n')
+st.write('Bu, Kaggle’dan alınan Star veri setini kullanan basit bir yıldız sınıflandırma uygulamasıdır. \n \
+         Veri seti, yıldızlar ve özellikleri hakkında bilgiler içerir. \n \
+         Amaç, yıldızın rengini diğer özelliklere dayanarak tahmin etmektir. \n')
 
-st.write('\n\n\n\n\n Data reading and preperation' )
+st.write('\n\n\n\n\n Veri okuma and ön işleme' )
 @st.cache_resource
 def load_data():
     return pd.read_csv(current_dir + '/cleaned_star_data.csv')
@@ -93,8 +93,8 @@ def display_model_scores(model_scores):
 display_model_scores(model_scores)
 
 @st.cache_data
-def display_confusion_matrix(best_model, X_test, y_test):
-    y_pred = best_model.predict(X_test)
+def display_confusion_matrix(_best_model, X_test, y_test):
+    y_pred = _best_model.predict(X_test)
     st.write(confusion_matrix(y_test, y_pred))
     st.write(classification_report(y_test, y_pred))
     st.write(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
