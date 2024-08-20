@@ -20,7 +20,7 @@ st.write('This is a simple star classification app that uses the Star dataset fr
 st.write('\n\n\n\n\n Data reading and preperation' )
 @st.cache_resource
 def load_data():
-    return pd.read_csv(current_dir + '\\cleaned_star_data.csv')
+    return pd.read_csv(current_dir + '/cleaned_star_data.csv')
 
 df = load_data()
 
