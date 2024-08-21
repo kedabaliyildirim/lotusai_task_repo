@@ -1,80 +1,46 @@
 import streamlit as st
-import pandas as pd
-from gensim.models import Word2Vec
-from gensim.models.doc2vec import Doc2Vec, TaggedDocument
-from gensim import corpora
-from nltk.corpus import stopwords
 import os
-import re
-from collections import defaultdict
+import sys
+from gensim import models
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from components.base_info import BaseInformation
+from components.base_operations import BaseOperation
+from components.tf_idf_model import TFIDFModel
 
-# Streamlit caching for loading corpus
-@st.cache_resource
-def load_corpus():
-    current_dir = os.path.dirname(__file__)
-    current_dir = os.path.dirname(current_dir)
-    file_directory = f'{current_dir}/eng_news_2023_100K-sentences.txt'
-    df = pd.read_csv(file_directory, sep='\t', header=None)
-    return df
+# Load and preprocess the corpus
+df = BaseInformation.load_corpus()
+pre_processed_df = BaseInformation.preprocess_text(df[1])
+BaseInformation.show_info(df, pre_processed_df)
 
-# Load the corpus
-df = load_corpus()
+# Tokenization, dictionary creation, and bag-of-words (BoW) creation
+tokenized_text = BaseOperation.tokenize_text(pre_processed_df)
+document = BaseOperation.create_dictionary(tokenized_text)
+words_bow = BaseOperation.create_bow(tokenized_text, document)
 
-st.subheader("Ön İşlemeden Önce")
-st.write(df.head())
+tokenId = BaseOperation.token_id(document)
 
-def preprocess_text(text_series):
-    stop_words = set(stopwords.words('english'))
-    text_series = text_series.astype(str)
-    
-    # Convert to lowercase
-    text_series = text_series.apply(lambda x: x.lower())
-    
-    # Remove numbers
-    text_series = text_series.apply(lambda x: re.sub(r'\d+', '', x))
-    
-    # Remove punctuation
-    text_series = text_series.apply(lambda x: re.sub(r'[^\w\s]', '', x))
-    
-    # Remove stopwords
-    text_series = text_series.apply(lambda x: ' '.join(word for word in x.split() if word not in stop_words))
+st.write('Next step is to train the TF-IDF model and calculate the similarity scores between documents. However, due to the size of the dataset, this process may take a while. Please be patient.')
+st.write('To continue, please click the button below.')
 
-    # Remove words that appear only once
-    frequency = defaultdict(int)
-    for text in text_series:
-        for token in text.split():
-            frequency[token] += 1
+if st.button('Continue'):
+    # Train the TF-IDF model and calculate similarities
+    tf_idf_model, terms_model = TFIDFModel.train_tfidf_model(words_bow, document)
+    index = TFIDFModel.similarities_model(tf_idf_model, document)
+    index, similarity_df = TFIDFModel.calculate_similarities(tf_idf_model, document)
+    TFIDFModel.info_similarity(similarity_df)
 
-    text_series = text_series.apply(lambda x: ' '.join(token for token in x.split() if frequency[token] > 1))
-
-    return text_series
-
-# Preprocess the text in the dataframe
-df[1] = preprocess_text(df[1])
-
-# Display the preprocessed text
-st.subheader('Ön İşlemeden Sonra')
-st.write(df.head())
-
-@st.cache_data
-def tokenize_text(df):
-    # Tokenize the text by splitting it into words
-    tokenized = df[1].apply(lambda x: x.split()).tolist()
-    return tokenized
-
-tokenized_text = tokenize_text(df)
+    st.write('The TF-IDF model has been trained and the similarity scores have been calculated. You can now view the results below.')
 
 @st.cache_resource
-def create_dictionary(tokenized_text):
-    # Create the dictionary from tokenized text
-    dictionary = corpora.Dictionary(tokenized_text)
-    return dictionary
+def lsi_model(words_bow, _document):
+    # LSI Model
+    lsi_model = models.LsiModel(words_bow, id2word=_document, num_topics=2)
+    st.write("the number of topics in the LSI model is: ")
+    st.write(len(lsi_model.print_topics()))
+    st.write("number of topics to be displayed: ")
+    st.slider("Select the number of topics to display", 1, len(lsi_model.print_topics()))
+    st.write("LSI Model Topics:")
+    st.write(lsi_model.print_topics(1))
 
-document = create_dictionary(tokenized_text)
-
-def get_token_id(document):
-    token = document.token2id
-    return token
-
-token_id = get_token_id(document)
+lsi_model(words_bow, document)    
 
