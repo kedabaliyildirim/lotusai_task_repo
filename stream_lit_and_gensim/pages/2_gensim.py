@@ -1,46 +1,80 @@
 import streamlit as st
-
+import pandas as pd
 from gensim.models import Word2Vec
-from gensim.models.doc2vec import Doc2Vec
-from gensim.models.doc2vec import TaggedDocument
-from gensim.models import KeyedVectors
+from gensim.models.doc2vec import Doc2Vec, TaggedDocument
+from gensim import corpora
+from nltk.corpus import stopwords
+import os
+import re
+from collections import defaultdict
 
-def train_word2vec_model(corpus):
-    model = Word2Vec(corpus, vector_size=100, window=5, min_count=1, workers=4)
-    return model
+# Streamlit caching for loading corpus
+@st.cache_resource
+def load_corpus():
+    current_dir = os.path.dirname(__file__)
+    current_dir = os.path.dirname(current_dir)
+    file_directory = f'{current_dir}/eng_news_2023_100K-sentences.txt'
+    df = pd.read_csv(file_directory, sep='\t', header=None)
+    return df
 
-def train_doc2vec_model(corpus):
-    tagged_data = [TaggedDocument(words=words, tags=[str(i)]) for i, words in enumerate(corpus)]
-    model = Doc2Vec(tagged_data, vector_size=100, window=2, min_count=1, workers=4)
-    return model
+# Load the corpus
+df = load_corpus()
+
+st.subheader("Ön İşlemeden Önce")
+st.write(df.head())
+
+def preprocess_text(text_series):
+    stop_words = set(stopwords.words('english'))
+    text_series = text_series.astype(str)
+    
+    # Convert to lowercase
+    text_series = text_series.apply(lambda x: x.lower())
+    
+    # Remove numbers
+    text_series = text_series.apply(lambda x: re.sub(r'\d+', '', x))
+    
+    # Remove punctuation
+    text_series = text_series.apply(lambda x: re.sub(r'[^\w\s]', '', x))
+    
+    # Remove stopwords
+    text_series = text_series.apply(lambda x: ' '.join(word for word in x.split() if word not in stop_words))
+
+    # Remove words that appear only once
+    frequency = defaultdict(int)
+    for text in text_series:
+        for token in text.split():
+            frequency[token] += 1
+
+    text_series = text_series.apply(lambda x: ' '.join(token for token in x.split() if frequency[token] > 1))
+
+    return text_series
+
+# Preprocess the text in the dataframe
+df[1] = preprocess_text(df[1])
+
+# Display the preprocessed text
+st.subheader('Ön İşlemeden Sonra')
+st.write(df.head())
+
+@st.cache_data
+def tokenize_text(df):
+    # Tokenize the text by splitting it into words
+    tokenized = df[1].apply(lambda x: x.split()).tolist()
+    return tokenized
+
+tokenized_text = tokenize_text(df)
 
 @st.cache_resource
-def load_word2vec_model():
-    return KeyedVectors.load_word2vec_format('GoogleNews-vectors-negative300.bin', binary=True)
+def create_dictionary(tokenized_text):
+    # Create the dictionary from tokenized text
+    dictionary = corpora.Dictionary(tokenized_text)
+    return dictionary
 
-def load_doc2vec_model():
-    return Doc2Vec.load('doc2vec.model')
+document = create_dictionary(tokenized_text)
 
-corpus = [
-    ['I', 'love', 'machine', 'learning'],
-    ['I', 'love', 'deep', 'learning'],
-    ['I', 'love', 'NLP'],
-]
+def get_token_id(document):
+    token = document.token2id
+    return token
 
-st.write('Training Word2Vec model')
-word2vec_model = train_word2vec_model(corpus)
-st.write('Training Doc2Vec model')
-doc2vec_model = train_doc2vec_model(corpus)
-
-st.write('Loading Word2Vec model')
-word2vec_model = load_word2vec_model()
-st.write('Loading Doc2Vec model')
-doc2vec_model = load_doc2vec_model()
-
-st.write('Word2Vec model similarity')
-st.write(word2vec_model.wv.most_similar('machine'))
-
-st.write('Doc2Vec model similarity')
-st.write(doc2vec_model.docvecs.most_similar('0'))
-
+token_id = get_token_id(document)
 
