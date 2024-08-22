@@ -5,42 +5,63 @@ from gensim import models
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from components.base_info import BaseInformation
 from components.base_operations import BaseOperation
-from components.tf_idf_model import TFIDFModel
-
-# Load and preprocess the corpus
+from components.model_operant import ModelOperant
+import pandas as pd
+# Korpus yükleme ve ön işleme
 df = BaseInformation.load_corpus()
-pre_processed_df = BaseInformation.preprocess_text(df[1])
-BaseInformation.show_info(df, pre_processed_df)
+pre_processed_data = BaseInformation.preprocess_and_tokenize(df[1])
+BaseInformation.show_info(df, pre_processed_data)
 
-# Tokenization, dictionary creation, and bag-of-words (BoW) creation
-tokenized_text = BaseOperation.tokenize_text(pre_processed_df)
-document = BaseOperation.create_dictionary(tokenized_text)
-words_bow = BaseOperation.create_bow(tokenized_text, document)
+st.subheader('\n\n\n Gensim ile Model Eğitimleri')
+st.write('\n\n Bu uygulamada, Gensim kütüphanesini kullanarak çeşitli modelleri eğiteceğiz. İlk olarak, veri setini yükleyeceğiz ve ön işleme adımlarını gerçekleştireceğiz. Daha sonra, belgeleri tokenize edeceğiz, bir sözlük oluşturacağız ve kelime çantası (BoW) oluşturacağız. isteğe bağlı olarak tf-idf, lsi, okapi, rp, lda ve hdp modellerini eğiteceğiz ve sonuçları göstereceğiz. \n\n\n')
 
-tokenId = BaseOperation.token_id(document)
+# Tokenizasyon, sözlük oluşturma ve kelime çantası (BoW) oluşturma
+document = BaseOperation.create_dictionary(pre_processed_data)
+words_bow = BaseOperation.create_bow(pre_processed_data, document)
 
-st.write('Next step is to train the TF-IDF model and calculate the similarity scores between documents. However, due to the size of the dataset, this process may take a while. Please be patient.')
-st.write('To continue, please click the button below.')
 
-if st.button('Continue'):
-    # Train the TF-IDF model and calculate similarities
-    tf_idf_model, terms_model = TFIDFModel.train_tfidf_model(words_bow, document)
-    index = TFIDFModel.similarities_model(tf_idf_model, document)
-    index, similarity_df = TFIDFModel.calculate_similarities(tf_idf_model, document)
-    TFIDFModel.info_similarity(similarity_df)
+with st.form(key='model_form'):
+    st.write("Hangi modeli eğitmek istersiniz?")
+    train_tfidf = st.checkbox("TF-IDF Modelini Eğit", value=True)
+    train_lsi = st.checkbox("LSI Modelini Eğit", value=False)
+    train_okapi = st.checkbox("OKAPI Modelini Eğit", value=False)
+    train_rp = st.checkbox("RP Modelini Eğit", value=False)
+    train_lda = st.checkbox("LDA Modelini Eğit", value=False)
+    train_hdp = st.checkbox("HDP Modelini Eğit", value=False)
+    submit = st.form_submit_button("Devam Et")
 
-    st.write('The TF-IDF model has been trained and the similarity scores have been calculated. You can now view the results below.')
+trained_models = pd.DataFrame()
+if submit:
+    selected_models = {'TFIDF': train_tfidf, 'LSI': train_lsi, 'OKAPI': train_okapi, 'RP': train_rp, 'LDA': train_lda, 'HDP': train_hdp}
+    ModelOperant.model_selection(selected_models, words_bow, document)
 
-@st.cache_resource
-def lsi_model(words_bow, _document):
-    # LSI Model
-    lsi_model = models.LsiModel(words_bow, id2word=_document, num_topics=2)
-    st.write("the number of topics in the LSI model is: ")
-    st.write(len(lsi_model.print_topics()))
-    st.write("number of topics to be displayed: ")
-    st.slider("Select the number of topics to display", 1, len(lsi_model.print_topics()))
-    st.write("LSI Model Topics:")
-    st.write(lsi_model.print_topics(1))
 
-lsi_model(words_bow, document)    
 
+st.write('\n\n Model eğitimini tamamladık ve benzerlik puanlarını inceledik, sırada modellerin birlikte kullanımı var \n\n\n')
+
+st.subheader('Model Birleştirme')
+st.write('\n\n Modelleri birleştirme, farklı model türlerini birleştirerek daha iyi sonuçlar elde etmek için kullanılır. Örneğin, bir belgeyi hem TF-IDF hem de LSI modeliyle temsil edebiliriz ve bu iki modelin benzerlik puanlarını birleştirerek daha iyi bir sonuç elde edebiliriz. Aşağıda yapacaklarımızın listesi var \n\n\n')
+st.write('1. LSI, LDA ve HDP ile daha kapsamlı bir topic seçimi gerçekleştirilebilir, LSI boyut azaltma için, \
+          LDA veya HDP ise topicları keşfetmek için kullanabilirsiniz \n\n')
+st.write('2. İlk belge getirme işlemi için BM25 kullanın, ardından belgeleri gizli topiclara göre iyileştirmek ve sıralamak için LSI veya LDA kullanın. \n\n')
+st.write('3. LSI veya LDA uygulamadan önce verinin boyutunu azaltmak için ön işleme aşamasında RP kullanın. \n\n')
+
+st.write('\n Bu adımları uygulamak için aşağıdaki seçenekleri kullanabilirsiniz. \n\n\n')
+
+with st.form(key='model_combination_form'):
+    st.write("Hangi modeli birleştirmek istersiniz?")
+    lsi_with_lda = st.checkbox('LSI ve LDA (LSI boyut azalmta, LDA topic bulma)', value=False)
+    lsi_with_hdp = st.checkbox('LSI ve HDP (LSI boyut azalmta, HDP topic bulma)', value=False)
+    okapi_with_lsi = st.checkbox('OKAPI ve LSI (OKAPI belge getirme, LSI topic bulma)', value=False)
+    okapi_with_lda = st.checkbox('OKAPI ve LDA (OKAPI belge getirme, LDA topic bulma)', value=False)
+    rp_with_lsi = st.checkbox('RP ve LSI (RP boyut azaltma, LSI topic bulma)', value=False)
+    rp_with_lda = st.checkbox('RP ve LDA (RP boyut azaltma, LDA topic bulma)', value=False)
+    submit = st.form_submit_button("Devam Et")
+
+model_comb_df = pd.DataFrame()
+if submit:
+    selected_combinations = {'lsi_lda': lsi_with_lda, 'lsi_hdp': lsi_with_hdp, 'bm25_lsi': okapi_with_lsi, 'bm25_lda': okapi_with_lda, 'rp_lsi': rp_with_lsi, 'rp_lda': rp_with_lda}
+    model_comb_df = ModelOperant.model_combination(selected_combinations, words_bow, document)
+
+st.write('\n\n Model birleştirme işlemini tamamladık, sonuçları inceleyebilirsiniz. \n\n\n')
+st.write(model_comb_df.head())

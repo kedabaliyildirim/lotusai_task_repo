@@ -22,31 +22,18 @@ class BaseInformation:
         st.write(df.head())
 
         # Display the preprocessed text
-        st.subheader('Ön İşlemeden Sonra')
-        st.write(pre_processed_df.head())
+        st.subheader('Ön İşlemeden Sonra ve tokenize edilmiş metin')
+        #list to dataframe
+        st.write(pre_processed_df[:5][2])   
+        # Display the number of documents and words 
 
-    def preprocess_text(text_series):
+    def preprocess_and_tokenize(df):
         stop_words = set(stopwords.words('english'))
-        text_series = text_series.astype(str)
-        
-        # Convert to lowercase
-        text_series = text_series.apply(lambda x: x.lower())
-        
-        # Remove numbers
-        text_series = text_series.apply(lambda x: re.sub(r'\d+', '', x))
-        
-        # Remove punctuation
-        text_series = text_series.apply(lambda x: re.sub(r'[^\w\s]', '', x))
-        
-        # Remove stopwords
-        text_series = text_series.apply(lambda x: ' '.join(word for word in x.split() if word not in stop_words))
+        df = df.apply(lambda x: x.lower())  # Lowercase
+        df = df.apply(lambda x: re.sub(r'\d+', '', x))  # Remove numbers
+        df = df.apply(lambda x: re.sub(r'[^\w\s]', '', x))  # Remove punctuation
+        df = df.apply(lambda x: ' '.join(word for word in x.split() if word not in stop_words))  # Remove stopwords
 
-        # Remove words that appear only once
-        frequency = defaultdict(int)
-        for text in text_series:
-            for token in text.split():
-                frequency[token] += 1
-
-        text_series = text_series.apply(lambda x: ' '.join(token for token in x.split() if frequency[token] > 1))
-
-        return text_series
+        # Tokenize text
+        tokenized = df.apply(lambda x: x.split()).tolist()
+        return tokenized
