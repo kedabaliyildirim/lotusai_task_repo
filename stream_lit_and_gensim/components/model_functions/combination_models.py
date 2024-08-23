@@ -43,14 +43,22 @@ class CombinedModel:
             st.session_state.trained_models = {}
 
         if 'lsi' not in st.session_state.trained_models:
-            lsi_model = CombinedModel.train_model('LsiModel', words_bow, document, id2word=document, num_topics=300)
+            lsi_model = CombinedModel.train_model('LsiModel', words_bow, document, id2word=document, num_topics=10)
             st.session_state.trained_models['lsi'] = lsi_model
         else:
             lsi_model = st.session_state.trained_models['lsi']
             
         lsi_topics = [lsi_model[doc] for doc in words_bow]
-        lda_model = CombinedModel.train_model('LdaModel', lsi_topics, document, id2word=document, num_topics=300)
         
+        if 'lda' not in st.session_state.trained_models:
+            lda_model = CombinedModel.train_model('LdaModel', lsi_topics, document, id2word=document, num_topics=10)
+            st.session_state.trained_models['lda'] = lda_model
+        else:
+            lda_model = st.session_state.trained_models['lda']
+        
+        lda_topics = lda_model.show_topics(formatted=False)
+        st.write(lda_topics)
+
         return lda_model
 
     @staticmethod
@@ -61,100 +69,88 @@ class CombinedModel:
             st.session_state.trained_models = {}
 
         if 'lsi' not in st.session_state.trained_models:
-            lsi_model = CombinedModel.train_model('LsiModel', words_bow, document, id2word=document, num_topics=300)
+            lsi_model = CombinedModel.train_model('LsiModel', words_bow, document, id2word=document, num_topics=10)
             st.session_state.trained_models['lsi'] = lsi_model
         else:
             lsi_model = st.session_state.trained_models['lsi']
 
         lsi_topics = [lsi_model[doc] for doc in words_bow]
-        hdp_model = CombinedModel.train_model('HdpModel', lsi_topics, document, id2word=document)
+        
+        if 'hdp' not in st.session_state.trained_models:
+            hdp_model = CombinedModel.train_model('HdpModel', lsi_topics, document, id2word=document)
+            st.session_state.trained_models['hdp'] = hdp_model
+        else:
+            hdp_model = st.session_state.trained_models['hdp']
+        
+        hdp_topics = hdp_model.show_topics(formatted=False)
+        st.write(hdp_topics)
 
         return hdp_model
 
-
-
+    @staticmethod
     def hybrid_okapi_lsi(words_bow, document):
         st.write("BM25 + LSI combination applied...")
 
-        # Train or retrieve Okapi BM25 model
         if 'OkapiBM25Model' not in st.session_state.trained_models:
             okapi_model = CombinedModel.train_model('OkapiBM25Model', words_bow, document)
             st.session_state.trained_models['OkapiBM25Model'] = okapi_model
         else:
             okapi_model = st.session_state.trained_models['OkapiBM25Model']
 
-        # Train or retrieve LSI model
         if 'LsiModel' not in st.session_state.trained_models:
-            lsi_model = CombinedModel.train_model('LsiModel', words_bow, document, id2word=document, num_topics=300)
+            lsi_model = CombinedModel.train_model('LsiModel', words_bow, document, id2word=document, num_topics=10)
             st.session_state.trained_models['LsiModel'] = lsi_model
         else:
             lsi_model = st.session_state.trained_models['LsiModel']
 
-        # Get results from both models
         okapi_results = okapi_model[words_bow]
         lsi_results = lsi_model[words_bow]
 
-        # Check the structure of the results
         if isinstance(okapi_results, list) and isinstance(lsi_results, list):
-            # Handle tuple structure if necessary
             if isinstance(okapi_results[0], tuple) and isinstance(lsi_results[0], tuple):
-                # Extract scores if results are in (index, score) format
                 okapi_scores = [score for _, score in okapi_results]
                 lsi_scores = [score for _, score in lsi_results]
             else:
-                # If the results are already in score format
                 okapi_scores = okapi_results
                 lsi_scores = lsi_results
 
-            # Combine the results: average the scores
             combined_results = [(okapi_score + lsi_score) / 2 for okapi_score, lsi_score in zip(okapi_scores, lsi_scores)]
         else:
             st.write("Unexpected result format from models")
             combined_results = []
 
+        st.write(combined_results)
         return combined_results
 
+    @staticmethod
     def hybrid_okapi_lda(words_bow, document):
         st.write("BM25 + LDA combination applied...")
 
-        # Train or retrieve Okapi BM25 model
         if 'OkapiBM25Model' not in st.session_state.trained_models:
             okapi_model = CombinedModel.train_model('OkapiBM25Model', words_bow, document)
             st.session_state.trained_models['OkapiBM25Model'] = okapi_model
         else:
             okapi_model = st.session_state.trained_models['OkapiBM25Model']
 
-        st.write("Okapi BM25 model loaded.")
-
-        # Get results from Okapi BM25 model
         okapi_results = okapi_model[words_bow]
-        st.write("Okapi BM25 results:")
-        st.write(okapi_results)  # Debug statement
 
-        # Train or retrieve LDA model
         if 'LdaModel' not in st.session_state.trained_models:
-            lda_model = CombinedModel.train_model('LdaModel', okapi_results, document, id2word=document, num_topics=300)
+            lda_model = CombinedModel.train_model('LdaModel', okapi_results, document, id2word=document, num_topics=10)
             st.session_state.trained_models['LdaModel'] = lda_model
         else:
             lda_model = st.session_state.trained_models['LdaModel']
 
-        st.write("LDA model loaded.")
-        
-        # Display LDA model topics
-        if lda_model:
-            lda_topics = lda_model.show_topics(formatted=False)
-            st.write("LDA Topics:")
-            st.write(lda_topics)  # Debug statement
-        else:
-            st.write("LDA model is not trained or is empty.")
+        lda_topics = lda_model.show_topics(formatted=False)
+        st.write(lda_topics)
 
         return lda_model
 
+    @staticmethod
     def hybrid_rp_lsi(words_bow, document):
         st.write("RP + LSI combination applied...")
 
         if 'RpModel' not in st.session_state.trained_models:
-            rp_model = CombinedModel.train_model('RpModel', words_bow, document, num_topics=300)
+            rp_model = CombinedModel.train_model('RpModel', words_bow, document, num_topics=10)
             st.session_state.trained_models['RpModel'] = rp_model
         else:
             rp_model = st.session_state.trained_models['RpModel']
@@ -162,18 +158,22 @@ class CombinedModel:
         rp_topics = [rp_model[doc] for doc in words_bow]
         
         if 'LsiModel' not in st.session_state.trained_models:
-            lsi_model = CombinedModel.train_model('LsiModel', rp_topics, document, num_topics=300)
+            lsi_model = CombinedModel.train_model('LsiModel', rp_topics, document, num_topics=10)
             st.session_state.trained_models['LsiModel'] = lsi_model
         else:
             lsi_model = st.session_state.trained_models['LsiModel']
 
+        lsi_topics = lsi_model.show_topics(formatted=False)
+        st.write(lsi_topics)
+
         return lsi_model
 
+    @staticmethod
     def hybrid_rp_lda(words_bow, document):
         st.write("RP + LDA combination applied...")
 
         if 'RpModel' not in st.session_state.trained_models:
-            rp_model = CombinedModel.train_model('RpModel', words_bow, document, num_topics=300)
+            rp_model = CombinedModel.train_model('RpModel', words_bow, document, num_topics=10)
             st.session_state.trained_models['RpModel'] = rp_model
         else:
             rp_model = st.session_state.trained_models['RpModel']
@@ -185,5 +185,8 @@ class CombinedModel:
             st.session_state.trained_models['LdaModel'] = lda_model
         else:
             lda_model = st.session_state.trained_models['LdaModel']
+
+        lda_topics = lda_model.show_topics(formatted=False)
+        st.write(lda_topics)
 
         return lda_model

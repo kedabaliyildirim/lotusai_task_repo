@@ -7,6 +7,8 @@ __pycache__/
 *.so
 .env
 *.csv
+*.model
+*.npy
 
 *.xlsx
 *.parquet

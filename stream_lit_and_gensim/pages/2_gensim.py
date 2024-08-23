@@ -6,14 +6,23 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from components.base_info import BaseInformation
 from components.base_operations import BaseOperation
 from components.model_operant import ModelOperant
+from components.word_embeddings import WordEmbedding
+from components.model_functions.model_test import ModelTests
 import pandas as pd
+
+st.title("Gensim")
+st.write('\n\n\n Gensim, Python programlama dili için açık kaynaklı bir doğal dil işleme kütüphanesidir. Gensim, kelime gömme, belge benzerliği, konu modelleme ve diğer metin işleme işlemleri için kullanılır. Bu uygulamada, Gensim kütüphanesini kullanarak çeşitli modelleri eğiteceğiz. \n\n\n')
+
+
+st.subheader('\n\n\n Gensim ile Model Eğitimleri')
+st.write('\n\n Bu uygulamada, Gensim kütüphanesini kullanarak çeşitli modelleri eğiteceğiz. İlk olarak, veri setini yükleyeceğiz ve ön işleme adımlarını gerçekleştireceğiz. Daha sonra, belgeleri tokenize edeceğiz, bir sözlük oluşturacağız ve kelime çantası (BoW) oluşturacağız. isteğe bağlı olarak tf-idf, lsi, okapi, rp, lda ve hdp modellerini eğiteceğiz ve sonuçları göstereceğiz. \n\n\n')
+
 # Korpus yükleme ve ön işleme
 df = BaseInformation.load_corpus()
 pre_processed_data = BaseInformation.preprocess_and_tokenize(df[1])
 BaseInformation.show_info(df, pre_processed_data)
 
-st.subheader('\n\n\n Gensim ile Model Eğitimleri')
-st.write('\n\n Bu uygulamada, Gensim kütüphanesini kullanarak çeşitli modelleri eğiteceğiz. İlk olarak, veri setini yükleyeceğiz ve ön işleme adımlarını gerçekleştireceğiz. Daha sonra, belgeleri tokenize edeceğiz, bir sözlük oluşturacağız ve kelime çantası (BoW) oluşturacağız. isteğe bağlı olarak tf-idf, lsi, okapi, rp, lda ve hdp modellerini eğiteceğiz ve sonuçları göstereceğiz. \n\n\n')
+
 
 # Tokenizasyon, sözlük oluşturma ve kelime çantası (BoW) oluşturma
 document = BaseOperation.create_dictionary(pre_processed_data)
@@ -65,3 +74,18 @@ if submit:
 
 
 st.write('\n\n Model birleştirme işlemini tamamlandi \n\n\n')
+
+st.subheader('Gömülü Kelime Modelleri')
+st.write('\n\n Bu bölümde, kelime gömme modellerini eğiteceğiz. Word2Vec, FastText ve Doc2Vec modellerini eğiteceğiz. Bu modeller, kelime vektörlerini oluşturmak ve benzerlikleri hesaplamak için kullanılır. \n\n\n')
+with st.form(key='word_embedding_form'):
+    st.write("Hangi kelime gömme modelini eğitmek istersiniz?")
+    test_phrase = st.text_input("Bir kelime girin (modellerin testi için):")
+    train_word2vec = st.checkbox("Word2Vec Modelini Eğit", value=True)
+    train_fasttext = st.checkbox("FastText Modelini Eğit", value=False)
+    train_doc2vec = st.checkbox("Doc2Vec Modelini Eğit", value=False)
+    submit = st.form_submit_button("Devam Et")
+
+if submit:
+    selected_word_embedding = {'word2vec': train_word2vec, 'fasttext': train_fasttext, 'doc2vec': train_doc2vec}
+    word_embedding = WordEmbedding(words_bow=words_bow, document=pre_processed_data)
+    word_embedding.word_embedding_selection(selected_word_embedding, test_phrase)

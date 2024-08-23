@@ -13,9 +13,13 @@ st.write(star_df.style.highlight_max(axis=0))
 
 st.line_chart(star_df['Temperature (K)'])
 
-# credt_df = pd.read_csv(current_dir+'/credit_card_purchases.csv')
-# credt_df['LON'] = credt_df['long'].astype(float)
-# st.map(credt_df)
+@st.cache_data
+def map_func(df):
+    df['LON'] = df['long'].astype(float)
+    st.map(df)
+
+credt_df = pd.read_csv(current_dir+'/credit_card_purchases.csv')
+map_func(credt_df)
 
 
 x = st.slider('Select a value')
@@ -34,5 +38,3 @@ option = st.selectbox(
      star_df.columns)
 
 st.line_chart(star_df[option])
-
-st.sidebar.write('This is a sidebar')
