@@ -62,3 +62,6 @@ model_comb_df = pd.DataFrame()
 if submit:
     selected_combinations = {'lsi_lda': lsi_with_lda, 'lsi_hdp': lsi_with_hdp, 'bm25_lsi': okapi_with_lsi, 'bm25_lda': okapi_with_lda, 'rp_lsi': rp_with_lsi, 'rp_lda': rp_with_lda}
     model_comb_df = ModelOperant.model_combination(selected_combinations, words_bow, document)
+
+
+st.write('\n\n Model birleştirme işlemini tamamlandi \n\n\n')

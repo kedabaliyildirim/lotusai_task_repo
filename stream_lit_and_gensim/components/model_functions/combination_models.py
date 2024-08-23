@@ -43,13 +43,13 @@ class CombinedModel:
             st.session_state.trained_models = {}
 
         if 'lsi' not in st.session_state.trained_models:
-            lsi_model = CombinedModel.train_model('LsiModel', words_bow, document, id2word=document, num_topics=5)
+            lsi_model = CombinedModel.train_model('LsiModel', words_bow, document, id2word=document, num_topics=300)
             st.session_state.trained_models['lsi'] = lsi_model
         else:
             lsi_model = st.session_state.trained_models['lsi']
             
         lsi_topics = [lsi_model[doc] for doc in words_bow]
-        lda_model = CombinedModel.train_model('LdaModel', lsi_topics, document, id2word=document, num_topics=5)
+        lda_model = CombinedModel.train_model('LdaModel', lsi_topics, document, id2word=document, num_topics=300)
         
         return lda_model
 
@@ -61,7 +61,7 @@ class CombinedModel:
             st.session_state.trained_models = {}
 
         if 'lsi' not in st.session_state.trained_models:
-            lsi_model = CombinedModel.train_model('LsiModel', words_bow, document, id2word=document, num_topics=5)
+            lsi_model = CombinedModel.train_model('LsiModel', words_bow, document, id2word=document, num_topics=300)
             st.session_state.trained_models['lsi'] = lsi_model
         else:
             lsi_model = st.session_state.trained_models['lsi']
@@ -85,7 +85,7 @@ class CombinedModel:
 
         # Train or retrieve LSI model
         if 'LsiModel' not in st.session_state.trained_models:
-            lsi_model = CombinedModel.train_model('LsiModel', words_bow, document, id2word=document, num_topics=5)
+            lsi_model = CombinedModel.train_model('LsiModel', words_bow, document, id2word=document, num_topics=300)
             st.session_state.trained_models['LsiModel'] = lsi_model
         else:
             lsi_model = st.session_state.trained_models['LsiModel']
@@ -133,7 +133,7 @@ class CombinedModel:
 
         # Train or retrieve LDA model
         if 'LdaModel' not in st.session_state.trained_models:
-            lda_model = CombinedModel.train_model('LdaModel', okapi_results, document, id2word=document, num_topics=5)
+            lda_model = CombinedModel.train_model('LdaModel', okapi_results, document, id2word=document, num_topics=300)
             st.session_state.trained_models['LdaModel'] = lda_model
         else:
             lda_model = st.session_state.trained_models['LdaModel']
@@ -154,7 +154,7 @@ class CombinedModel:
         st.write("RP + LSI combination applied...")
 
         if 'RpModel' not in st.session_state.trained_models:
-            rp_model = CombinedModel.train_model('RpModel', words_bow, document, num_topics=5)
+            rp_model = CombinedModel.train_model('RpModel', words_bow, document, num_topics=300)
             st.session_state.trained_models['RpModel'] = rp_model
         else:
             rp_model = st.session_state.trained_models['RpModel']
@@ -162,7 +162,7 @@ class CombinedModel:
         rp_topics = [rp_model[doc] for doc in words_bow]
         
         if 'LsiModel' not in st.session_state.trained_models:
-            lsi_model = CombinedModel.train_model('LsiModel', rp_topics, document, num_topics=5)
+            lsi_model = CombinedModel.train_model('LsiModel', rp_topics, document, num_topics=300)
             st.session_state.trained_models['LsiModel'] = lsi_model
         else:
             lsi_model = st.session_state.trained_models['LsiModel']
@@ -173,7 +173,7 @@ class CombinedModel:
         st.write("RP + LDA combination applied...")
 
         if 'RpModel' not in st.session_state.trained_models:
-            rp_model = CombinedModel.train_model('RpModel', words_bow, document, num_topics=5)
+            rp_model = CombinedModel.train_model('RpModel', words_bow, document, num_topics=300)
             st.session_state.trained_models['RpModel'] = rp_model
         else:
             rp_model = st.session_state.trained_models['RpModel']
