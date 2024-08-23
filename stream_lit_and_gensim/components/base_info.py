@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import streamlit as st
+import nltk
 from nltk.corpus import stopwords
 import re
 from collections import defaultdict
@@ -28,6 +29,7 @@ class BaseInformation:
         # Display the number of documents and words 
 
     def preprocess_and_tokenize(df):
+        nltk.download('stopwords')
         stop_words = set(stopwords.words('english'))
         df = df.apply(lambda x: x.lower())  # Lowercase
         df = df.apply(lambda x: re.sub(r'\d+', '', x))  # Remove numbers
