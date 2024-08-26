@@ -3,6 +3,7 @@ from gensim import models, similarities
 import pandas as pd
 from gensim.test.utils import common_texts
 from gensim.models import Word2Vec, FastText, Doc2Vec
+from gensim.models.doc2vec import TaggedDocument
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join('..')))
@@ -45,18 +46,14 @@ class WordEmbedding:
     def train_fasttext(self, model_name):
         try:
             model = FastText.load("fasttext.model")
-            st.write(f"{model_name} Modeli başarıyla yüklendi.")
         except FileNotFoundError:
             st.write(f"{model_name} Modeli bulunamadı, yeni bir model eğitiliyor...")
-            model = FastText(sentences=self.document, vector_size=100, window=5, min_count=1, workers=4)
+            model = FastText(sentences=self.document, vector_size=100, window=5, min_count=1, workers=4, alpha=0.005)
+
+            print(model.wv.most_similar('technology'))
+
             model.save("fasttext.model")
             st.write(f"{model_name} Modeli kaydedildi.")
-
-        if isinstance(self.words_bow, list):
-            model.train(self.words_bow, total_examples=len(self.words_bow), epochs=10)
-            st.write(f"{model_name} Modeli {len(self.words_bow)} örnek üzerinde eğitildi.")
-        else:
-            st.write(f"{model_name} Modeli için BoW verisi uygun değil, eğitim başarısız.")
 
         return model
 
@@ -66,26 +63,26 @@ class WordEmbedding:
             st.write(f"{model_name} Modeli başarıyla yüklendi.")
         except FileNotFoundError:
             st.write(f"{model_name} Modeli bulunamadı, yeni bir model eğitiliyor...")
-            model = Doc2Vec(documents=self.document, vector_size=100, window=5, min_count=1, workers=4)
+            model = doc2vec.Doc2Vec(vector_size=100, window=5, min_count=1, workers=4)
+            model.build_vocab(self.args['doc2vec_document'])
+            model.train(self.args['doc2vec_document'], total_examples=model.corpus_count, epochs=100)
+            
             model.save("doc2vec.model")
             st.write(f"{model_name} Modeli kaydedildi.")
 
-        if isinstance(self.document, list):
-            model.train(self.document, total_examples=len(self.document), epochs=10)
-            st.write(f"{model_name} Modeli {len(self.document)} örnek üzerinde eğitildi.")
-        else:
-            st.write(f"{model_name} Modeli için doküman verisi uygun değil, eğitim başarısız.")
 
         return model
     
-    def word_embedding_selection(self, train_list, test_phrase):
+    def word_embedding_selection(self, train_list, test_phrase, test_doc):
         if train_list['word2vec']:
             w2v_model = self.train_word2vec("Word2Vec")
             ModelTests.test_word2vec(w2v_model, test_phrase)
         if train_list['fasttext']:
             ft_model = self.train_fasttext("FastText")
-            ModelTests.test_word2vec(ft_model, test_phrase)
+            ModelTests.test_FastText(ft_model, test_phrase)
         if train_list['doc2vec']:
             d2v_model = self.train_doc2vec("Doc2Vec")
-            ModelTests.test_word2vec(d2v_model, test_phrase)
+            test_doc = test_doc.split(" ")
+            test_doc = [word for word in test_doc if word != '']
+            ModelTests.test_doc2vec(d2v_model, test_doc)
         

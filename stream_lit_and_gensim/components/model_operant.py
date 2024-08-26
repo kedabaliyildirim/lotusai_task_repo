@@ -67,7 +67,7 @@ class ModelOperant:
             st.subheader('RP Model')
             st.write("Random Projections modeli eğitiliyor, RP modeli begenin mertebesini düşürmek için kullanılır. Yüksek mertebeli veriyi düşük mertebeli uzaya yansıtarak çalışır  \n\n\n")
             st.subheader('Kullanim alanları:')
-            st.write('1. Büyük veri setlerinde boyut azaltma işlemlerini verinin yapısını koruyarak etkili bir şekilde gerçekleştirmek \n\n' )
+            st.write('1. Büyük veri setlerinde boyut azaltma işlemlerini verinin yapısını koruyarak etkili bir şekilde gerçekleştirmek için kullanılır \n\n' )
             st.write('2. Benzerlik puanlarını hesaplamak \n\n')
             st.write('3. Anlamlı analizler sağlamkla beraber verilerin rastgele yansıtılması veri madenciliği yaparken verinin anonim halinin korunmasına yardımcı olur. \n\n')
             trained_model['RP'] = train_and_calculate('RpModel', _words_bow, num_topics=10)
@@ -118,7 +118,7 @@ class ModelOperant:
         if selected_combinations.get('bm25_lsi'):
             st.subheader('BM25 + LSI Model')
             st.write("BM25, ilk olarak en alakalı belgeleri getirir, ardından LSI bu belgeleri rafine ederek gizli yapıları keşfeder.")
-            st.write('Kullanım Alanları: \n1. Arama motorlarında belge sıralaması \n2. İlk sıralanan belgeleri rafine etme \n3. Büyük metin koleksiyonlarında derin analiz.')
+            st.write('Kullanım Alanları: \n1. Arama motorlarında belge sıralaması \n2. İlk sıralanan belgeleri rafine etme \n3. Büyük metin koleksiyonlarında derin metin analiz.')
             model_combinations_df['bm25_lsi'] = CombinedModel.hybrid_okapi_lsi(words_bow, document)
 
         if selected_combinations.get('bm25_lda'):

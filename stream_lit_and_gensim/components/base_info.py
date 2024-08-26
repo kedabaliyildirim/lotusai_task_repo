@@ -6,6 +6,7 @@ from nltk.corpus import stopwords
 import re
 from collections import defaultdict
 from matplotlib import pyplot as plt
+from gensim.models.doc2vec import TaggedDocument
 from wordcloud import WordCloud
 import matplotlib.image as mpimg
 class BaseInformation:
@@ -39,3 +40,14 @@ class BaseInformation:
         # Tokenize text
         tokenized = df.apply(lambda x: x.split()).tolist()
         return tokenized
+
+    def doc2vec_df(df):
+        nltk.download('stopwords')
+        stop_words = set(stopwords.words('english'))
+        df = df.apply(lambda x: x.lower())  # Lowercase
+        df = df.apply(lambda x: re.sub(r'\d+', '', x))  # Remove numbers
+        df = df.apply(lambda x: re.sub(r'[^\w\s]', '', x))  # Remove punctuation
+        df = df.apply(lambda x: ' '.join(word for word in x.split() if word not in stop_words))  # Remove stopwords
+        tagged_docs = [TaggedDocument(words=text.split(), tags=[i]) for i, text in enumerate(df)]
+        
+        return tagged_docs
